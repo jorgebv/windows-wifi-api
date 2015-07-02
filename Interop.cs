@@ -346,6 +346,14 @@ namespace NativeWifi
             [In] IntPtr pReserved,
             [Out] out WlanReasonCode reasonCode);
 
+        [DllImport("wlanapi.dll")]
+        public static extern int WlanSetProfilePosition(
+            [In] IntPtr clientHandle,
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid interfaceGuid,
+            [In, MarshalAs(UnmanagedType.LPWStr)] string profileName,
+            [In] UInt32 position,
+            [In] IntPtr pReserved);
+
         /// <summary>
         /// Defines the access mask of an all-user profile.
         /// </summary>

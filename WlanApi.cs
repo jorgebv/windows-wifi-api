@@ -481,6 +481,17 @@ namespace NativeWifi
             }
 
             /// <summary>
+            /// Reorder the position of a profile in the profile list. Note that not all profile types can be reordered -- group policy profiles, for example, cannot be moved in the profile list.
+            /// </summary>
+            /// <param name="profileName">The name of the profile.</param>
+            /// <param name="position">The new position which the profile should have. 0 corresponds to the front of the list.</param>
+            public void SetProfilePosition(string profileName, uint position)
+            {
+                Wlan.ThrowIfError(
+                        Wlan.WlanSetProfilePosition(client.clientHandle, info.interfaceGuid, profileName, position, IntPtr.Zero));
+            }
+
+            /// <summary>
             /// Gets the profile's XML specification.
             /// </summary>
             /// <param name="profileName">The name of the profile.</param>
