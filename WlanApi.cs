@@ -484,11 +484,12 @@ namespace NativeWifi
             /// Gets the profile's XML specification.
             /// </summary>
             /// <param name="profileName">The name of the profile.</param>
+            /// <param name="unencryptPassword">Whether the password should be unencrypted in the returned XML. By default this is false and the password is left encrypted.</param>
             /// <returns>The XML document.</returns>
-            public string GetProfileXml(string profileName)
+            public string GetProfileXml(string profileName, bool unencryptPassword = false)
             {
                 IntPtr profileXmlPtr;
-                Wlan.WlanProfileFlags flags;
+                Wlan.WlanProfileFlags flags = unencryptPassword ? Wlan.WlanProfileFlags.None : Wlan.WlanProfileFlags.GetPlaintextKey;
                 Wlan.WlanAccess access;
                 Wlan.ThrowIfError(
                     Wlan.WlanGetProfile(client.clientHandle, info.interfaceGuid, profileName, IntPtr.Zero, out profileXmlPtr, out flags,

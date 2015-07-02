@@ -325,12 +325,14 @@ namespace NativeWifi
         [Flags]
         public enum WlanProfileFlags
         {
-            /// <remarks>
-            /// The only option available on Windows XP SP2.
-            /// </remarks>
+            // When getting profiles, the absence of the "User" or "GroupPolicy" flags implies that the profile
+            // is an "AllUser" profile. This can also be viewed as having no flag -- hence "None" and "AllUser"
+            // are equivalent
+            None = 0,
             AllUser = 0,
             GroupPolicy = 1,
-            User = 2
+            User = 2,
+            GetPlaintextKey = 4
         }
 
         [DllImport("wlanapi.dll")]
