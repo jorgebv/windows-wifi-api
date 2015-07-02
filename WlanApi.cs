@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NativeWifi
 {
@@ -24,6 +25,7 @@ namespace NativeWifi
 		{
 			private WlanClient client;
 			private Wlan.WlanInterfaceInfo info;
+            private AutoResetEvent scanCompleteEvent;
 
 			#region Events
 			/// <summary>
@@ -84,6 +86,7 @@ namespace NativeWifi
 			{
 				this.client = client;
 				this.info = info;
+                scanCompleteEvent = new AutoResetEvent(false);
 			}
 
 			/// <summary>
@@ -238,14 +241,16 @@ namespace NativeWifi
 
 			/// <summary>
 			/// Requests a scan for available networks.
-			/// </summary>
-			/// <remarks>
-			/// The method returns immediately. Progress is reported through the <see cref="WlanNotification"/> event.
-			/// </remarks>
-			public void Scan()
+			/// This method can be awaited to for the scan's completion.
+            /// Scan completion will also be reported through the <see cref="WlanNotification"/> event.
+            /// </summary>
+			public Task ScanAsync()
 			{
-				Wlan.ThrowIfError(
-					Wlan.WlanScan(client.clientHandle, info.interfaceGuid, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero));
+                return Task.Run(() => {
+                    Wlan.ThrowIfError(
+                        Wlan.WlanScan(client.clientHandle, info.interfaceGuid, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero));
+                    scanCompleteEvent.WaitOne();
+                });
 			}
 
 			/// <summary>
@@ -555,6 +560,12 @@ namespace NativeWifi
 
 			internal void OnWlanNotification(Wlan.WlanNotificationData notifyData)
 			{
+                // if this is a scan complete notification, set the scanCompleteEvent
+                if (notifyData.notificationCode == (int)Wlan.WlanNotificationCodeAcm.ScanComplete)
+                {
+                    scanCompleteEvent.Set();
+                }
+
 				if (WlanNotification != null)
 					WlanNotification(notifyData);
 			}
