@@ -489,7 +489,7 @@ namespace NativeWifi
             public string GetProfileXml(string profileName, bool unencryptPassword = false)
             {
                 IntPtr profileXmlPtr;
-                Wlan.WlanProfileFlags flags = unencryptPassword ? Wlan.WlanProfileFlags.None : Wlan.WlanProfileFlags.GetPlaintextKey;
+                Wlan.WlanProfileFlags flags = unencryptPassword ? Wlan.WlanProfileFlags.GetPlaintextKey : Wlan.WlanProfileFlags.None;
                 Wlan.WlanAccess access;
                 Wlan.ThrowIfError(
                     Wlan.WlanGetProfile(client.clientHandle, info.interfaceGuid, profileName, IntPtr.Zero, out profileXmlPtr, out flags,
