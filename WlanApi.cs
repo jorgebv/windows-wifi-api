@@ -246,7 +246,7 @@ namespace NativeWifi
             /// </summary>
             public Task ScanAsync()
             {
-                return Task.Run(() => {
+                return Task.Factory.StartNew(() => {
                     Wlan.ThrowIfError(
                         Wlan.WlanScan(client.clientHandle, info.interfaceGuid, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero));
                     scanCompleteEvent.WaitOne();
