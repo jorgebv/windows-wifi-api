@@ -6,6 +6,9 @@ using System.Net.NetworkInformation;
 using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace NativeWifi
 {
@@ -392,13 +395,13 @@ namespace NativeWifi
             /// <param name="profile"></param>
             /// <param name="connectTimeout"></param>
             /// <returns></returns>
-            public bool ConnectSynchronously(Wlan.WlanConnectionMode connectionMode, Wlan.Dot11BssType bssType, string profile, int connectTimeout)
+            public bool ConnectSynchronously(Wlan.WlanConnectionMode connectionMode, Wlan.Dot11BssType bssType, string profile, int connectTimeoutInMilliseconds)
             {
                 queueEvents = true;
                 try
                 {
                     Connect(connectionMode, bssType, profile);
-                    while (queueEvents && eventQueueFilled.WaitOne(connectTimeout, true))
+                    while (queueEvents && eventQueueFilled.WaitOne(connectTimeoutInMilliseconds, true))
                     {
                         lock (eventQueue)
                         {
@@ -414,9 +417,34 @@ namespace NativeWifi
                                         switch ((Wlan.WlanNotificationCodeAcm)wlanConnectionData.notifyData.notificationCode)
                                         {
                                             case Wlan.WlanNotificationCodeAcm.ConnectionComplete:
-                                                if (wlanConnectionData.connNotifyData.profileName == profile)
+                                            {
+                                                string profileName = profile;
+                                                if (connectionMode == Wlan.WlanConnectionMode.TemporaryProfile)
+                                                {
+                                                    // We need to get what's between the <name> tags in the profile. don't want to do a straight
+                                                    // string compare because the name tag also occurs in the SSID tag, but we want the profile
+                                                    // name.
+                                                    //
+                                                    // The profileXml field looks promising to compare against, but is blank of a temp profile
+                                                    //
+                                                    // Regex might work but seems error prone
+                                                    //
+                                                    // Also, even our passed in profile looks something like <name>     name</name>, the
+                                                    // profile name in the connNotifyData is trimmed
+                                                    //
+                                                    // So parse the passed in XML and then trim the profile name to match wlansvc
+                                                    var document = XDocument.Parse(profile);
+                                                    profileName = (from x in document.Root.Elements()
+                                                                   where x.Name.LocalName == "name"
+                                                                   select x.Value).First().Trim();
+                                                }
+
+                                                if (wlanConnectionData.connNotifyData.profileName == profileName)
+                                                {
                                                     return true;
+                                                }
                                                 break;
+                                            }
                                         }
                                     }
                                     break;

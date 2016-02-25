@@ -181,6 +181,10 @@ namespace NativeWifi
         public enum WlanGetAvailableNetworkFlags
         {
             /// <summary>
+            /// No additional flags
+            /// </summary>
+            None = 0,
+            /// <summary>
             /// Include all ad-hoc network profiles in the available network list, including profiles that are not visible.
             /// </summary>
             IncludeAllAdhocProfiles = 0x00000001,
