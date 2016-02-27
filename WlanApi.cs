@@ -29,6 +29,7 @@ namespace NativeWifi
             private WlanClient client;
             private Wlan.WlanInterfaceInfo info;
             private AutoResetEvent scanCompleteEvent;
+            private AutoResetEvent disconnectCompleteEvent;
 
             #region Events
             /// <summary>
@@ -90,6 +91,7 @@ namespace NativeWifi
                 this.client = client;
                 this.info = info;
                 scanCompleteEvent = new AutoResetEvent(false);
+                disconnectCompleteEvent = new AutoResetEvent(false);
             }
 
             /// <summary>
@@ -244,7 +246,7 @@ namespace NativeWifi
 
             /// <summary>
             /// Requests a scan for available networks.
-            /// This method can be awaited to for the scan's completion.
+            /// This method can be awaited for the scan's completion.
             /// Scan completion will also be reported through the <see cref="WlanNotification"/> event.
             /// </summary>
             public Task ScanAsync()
@@ -384,6 +386,21 @@ namespace NativeWifi
                 connectionParams.dot11BssType = bssType;
                 connectionParams.flags = 0;
                 Connect(connectionParams);
+            }
+            
+            /// <summary>
+            /// Disconnect's the interface from it's current connection
+            /// This method can be awaited for the scan's completion.
+            /// Scan completion will also be reported through the <see cref="WlanNotification"/> event.
+            /// </summary>
+            public Task DisconnectAsync()
+            {
+                return Task.Factory.StartNew(() =>
+                {
+                    Wlan.ThrowIfError(
+                        Wlan.WlanDisconnect(client.clientHandle, info.interfaceGuid, IntPtr.Zero));
+                    disconnectCompleteEvent.WaitOne();
+                });
             }
             
             /// <summary>
@@ -573,8 +590,16 @@ namespace NativeWifi
 
             internal void OnWlanConnection(Wlan.WlanNotificationData notifyData, Wlan.WlanConnectionNotificationData connNotifyData)
             {
+                if (notifyData.notificationSource == Wlan.WlanNotificationSource.ACM &&
+                    notifyData.notificationCode == (int)Wlan.WlanNotificationCodeAcm.Disconnected)
+                {
+                    disconnectCompleteEvent.Set();
+                }
+
                 if (WlanConnectionNotification != null)
+                {
                     WlanConnectionNotification(notifyData, connNotifyData);
+                }
 
                 if (queueEvents)
                 {
@@ -601,13 +626,16 @@ namespace NativeWifi
             internal void OnWlanNotification(Wlan.WlanNotificationData notifyData)
             {
                 // if this is a scan complete notification, set the scanCompleteEvent
-                if (notifyData.notificationCode == (int)Wlan.WlanNotificationCodeAcm.ScanComplete)
+                if (notifyData.notificationSource == Wlan.WlanNotificationSource.ACM &&
+                    notifyData.notificationCode == (int)Wlan.WlanNotificationCodeAcm.ScanComplete)
                 {
                     scanCompleteEvent.Set();
                 }
 
                 if (WlanNotification != null)
+                {
                     WlanNotification(notifyData);
+                }
             }
 
             /// <summary>
