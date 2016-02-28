@@ -127,6 +127,8 @@ namespace NativeWifi
         public const uint WLAN_CLIENT_VERSION_XP_SP2 = 1;
         public const uint WLAN_CLIENT_VERSION_LONGHORN = 2;
 
+        public const uint WLAN_MAX_NAME_LENGTH = 256;
+
         [DllImport("wlanapi.dll")]
         public static extern int WlanOpenHandle(
             [In] UInt32 clientVersion,
@@ -237,7 +239,7 @@ namespace NativeWifi
             /// If the network doesn't have a profile, this member will be empty.
             /// If multiple profiles are associated with the network, there will be multiple entries with the same SSID in the visible network list. Profile names are case-sensitive.
             /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)WLAN_MAX_NAME_LENGTH)]
             public string profileName;
             /// <summary>
             /// Contains the SSID of the visible wireless network.
@@ -583,6 +585,22 @@ namespace NativeWifi
             /// Exempt EAPOL traffic from encryption and decryption. This flag is used when an application must send EAPOL traffic over an infrastructure network that uses Open authentication and WEP encryption. This flag must not be used to connect to networks that require 802.1X authentication. This flag is only valid when <see cref="WlanConnectionParameters.wlanConnectionMode"/> is set to <see cref="WlanConnectionMode.TemporaryProfile"/>. Avoid using this flag whenever possible.
             /// </summary>
             EapolPassthrough = 0x00000008
+        }
+
+        /// <summary>
+        /// Defines flags returned in <see cref="WLAN_CONNECITON_NOTIFICATION_DATA"/>
+        /// </summary>
+        [Flags]
+        public enum WlanConnectionNotificationFlags
+        {
+            /// <summary>
+            /// Indicates that an adhoc network is formed.
+            /// </summary>
+            AdhocNetworkFormed = 0x00000001,
+            /// <summary>
+            /// Indicates that the connection uses a per-user profile owned by the console user. Non-console users will not be able to see the profile in their profile list.
+            /// </summary>
+            ConsoleUserProfile = 0x00000004
         }
 
         /// <summary>
@@ -1117,7 +1135,7 @@ namespace NativeWifi
             /// <summary>
             /// The name of the profile used for the connection. Profile names are case-sensitive.
             /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)WLAN_MAX_NAME_LENGTH)]
             public string profileName;
             /// <summary>
             /// The SSID of the association.
@@ -1137,6 +1155,10 @@ namespace NativeWifi
             /// If the connection fails, this field indicates the reason for the failure.
             /// </summary>
             public WlanReasonCode wlanReasonCode;
+            /// <summary>
+            /// A set of flags that provide additional information for the network connection.
+            /// </summary>
+            public WlanConnectionNotificationFlags flags;
             /// <summary>
             /// This field contains the XML presentation of the profile used for discovery, if the connection succeeds.
             /// </summary>
@@ -1521,7 +1543,7 @@ namespace NativeWifi
             /// <summary>
             /// The name of the profile used for the connection. Profile names are case-sensitive.
             /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)WLAN_MAX_NAME_LENGTH)]
             public string profileName;
             /// <summary>
             /// The attributes of the association.
@@ -1546,7 +1568,7 @@ namespace NativeWifi
             /// <summary>
             /// The description of the interface.
             /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)WLAN_MAX_NAME_LENGTH)]
             public string interfaceDescription;
             /// <summary>
             /// The current state of the interface.
@@ -1583,7 +1605,7 @@ namespace NativeWifi
             /// <summary>
             /// The name of the profile. This value may be the name of a domain if the profile is for provisioning. Profile names are case-sensitive.
             /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)WLAN_MAX_NAME_LENGTH)]
             public string profileName;
             /// <summary>
             /// Profile flags.

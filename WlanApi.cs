@@ -435,30 +435,37 @@ namespace NativeWifi
                                         {
                                             case Wlan.WlanNotificationCodeAcm.ConnectionComplete:
                                             {
-                                                string profileName = profile;
-                                                if (connectionMode == Wlan.WlanConnectionMode.TemporaryProfile)
+                                                if (wlanConnectionData.connNotifyData.wlanReasonCode == Wlan.WlanReasonCode.Success)
                                                 {
-                                                    // We need to get what's between the <name> tags in the profile. don't want to do a straight
-                                                    // string compare because the name tag also occurs in the SSID tag, but we want the profile
-                                                    // name.
-                                                    //
-                                                    // The profileXml field looks promising to compare against, but is blank of a temp profile
-                                                    //
-                                                    // Regex might work but seems error prone
-                                                    //
-                                                    // Also, even our passed in profile looks something like <name>     name</name>, the
-                                                    // profile name in the connNotifyData is trimmed
-                                                    //
-                                                    // So parse the passed in XML and then trim the profile name to match wlansvc
-                                                    var document = XDocument.Parse(profile);
-                                                    profileName = (from x in document.Root.Elements()
-                                                                   where x.Name.LocalName == "name"
-                                                                   select x.Value).First().Trim();
-                                                }
+                                                    string profileName = profile;
+                                                    if (connectionMode == Wlan.WlanConnectionMode.TemporaryProfile)
+                                                    {
+                                                        // We need to get what's between the <name> tags in the profile. don't want to do a straight
+                                                        // string compare because the name tag also occurs in the SSID tag, but we want the profile
+                                                        // name.
+                                                        //
+                                                        // The profileXml field looks promising to compare against, but is blank of a temp profile
+                                                        //
+                                                        // Regex might work but seems error prone
+                                                        //
+                                                        // Also, even our passed in profile looks something like <name>     name</name>, the
+                                                        // profile name in the connNotifyData is trimmed
+                                                        //
+                                                        // So parse the passed in XML and then trim the profile name to match wlansvc
+                                                        var document = XDocument.Parse(profile);
+                                                        profileName = (from x in document.Root.Elements()
+                                                                       where x.Name.LocalName == "name"
+                                                                       select x.Value).First().Trim();
+                                                    }
 
-                                                if (wlanConnectionData.connNotifyData.profileName == profileName)
+                                                    if (wlanConnectionData.connNotifyData.profileName == profileName)
+                                                    {
+                                                        return true;
+                                                    }
+                                                }
+                                                else
                                                 {
-                                                    return true;
+                                                    return false;
                                                 }
                                                 break;
                                             }
